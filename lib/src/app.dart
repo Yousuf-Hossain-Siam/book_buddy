@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:book_buddy_/src/features/splash/presentation/splash_screen.dart';
 
+import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'features/counter/presentation/pages/counter_page.dart';
+
 
 class BookBuddyApp extends StatelessWidget {
   const BookBuddyApp({super.key});
@@ -9,10 +10,10 @@ class BookBuddyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Book Buuuuuddy',
+      title: 'Book Buddy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const CounterPage(),
+      home: const SplashScreen(),
     );
   }
 }
