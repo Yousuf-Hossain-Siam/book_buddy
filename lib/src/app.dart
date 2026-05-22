@@ -9,7 +9,7 @@ class BookBuddyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Book Buddy',
+      title: 'Book Buuuuuddy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: const CounterPage(),
