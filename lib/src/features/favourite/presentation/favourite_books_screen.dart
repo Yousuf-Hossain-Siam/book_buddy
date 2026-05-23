@@ -171,6 +171,7 @@ class _FavouritePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
+      // ignore: deprecated_member_use
       color: Colors.white.withOpacity(0.88),
       shape: const CircleBorder(),
       child: InkWell(

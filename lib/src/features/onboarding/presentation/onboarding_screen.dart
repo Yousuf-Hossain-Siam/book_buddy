@@ -32,6 +32,7 @@ class OnboardingScreen extends ConsumerWidget {
             top: -60,
             left: -40,
             child: _BlurCircle(
+              // ignore: deprecated_member_use
               color: const Color(0xFFFFE7B6).withOpacity(0.55),
               size: 180,
             ),
@@ -40,6 +41,7 @@ class OnboardingScreen extends ConsumerWidget {
             bottom: 120,
             right: -50,
             child: _BlurCircle(
+              // ignore: deprecated_member_use
               color: const Color(0xFFBCA8FF).withOpacity(0.35),
               size: 190,
             ),
@@ -56,10 +58,12 @@ class OnboardingScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
+                          // ignore: deprecated_member_use
                           color: Colors.white.withOpacity(0.48),
                           borderRadius: BorderRadius.circular(22),
                           boxShadow: [
                             BoxShadow(
+                              // ignore: deprecated_member_use
                               color: const Color(0xFF8574FF).withOpacity(0.18),
                               blurRadius: 32,
                               offset: const Offset(0, 18),
@@ -168,6 +172,7 @@ class _BlurCircle extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
+          // ignore: deprecated_member_use
           colors: [color, color.withOpacity(0.0)],
         ),
       ),

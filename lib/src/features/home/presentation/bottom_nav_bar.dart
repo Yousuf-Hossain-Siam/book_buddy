@@ -23,16 +23,20 @@ class BottomNavBar extends StatelessWidget {
             child: Container(
               height: 72,
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: const Color(0xFFFDFDFF).withOpacity(0.92),
                 borderRadius: BorderRadius.circular(26),
+                // ignore: deprecated_member_use
                 border: Border.all(color: const Color(0xFFCBD5FF).withOpacity(0.95), width: 1.1),
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: const Color(0xFF4F46E5).withOpacity(0.24),
                     blurRadius: 26,
                     offset: const Offset(0, 12),
                   ),
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.08),
                     blurRadius: 16,
                     offset: const Offset(0, 6),

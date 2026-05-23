@@ -246,6 +246,7 @@ class _CartSummary extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.05),
             blurRadius: 24,
             offset: const Offset(0, 10),

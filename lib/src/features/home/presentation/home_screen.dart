@@ -110,6 +110,7 @@ class HomeScreen extends ConsumerWidget {
                     hintText: 'Search by title, author, or genre...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
+                    // ignore: deprecated_member_use
                     fillColor: Colors.white.withOpacity(0.9),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

@@ -69,6 +69,7 @@ class BookDescriptionScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
+                        // ignore: deprecated_member_use
                         color: Colors.black.withOpacity(0.05),
                         blurRadius: 24,
                         offset: const Offset(0, 10),
@@ -246,7 +247,7 @@ class BookDescriptionScreen extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           scrollDirection: Axis.horizontal,
                           itemCount: relatedBooks.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, _) =>
                               const SizedBox(width: 14),
                           itemBuilder: (context, index) {
                             final relatedBook = relatedBooks[index];
@@ -292,6 +293,7 @@ class _BookCover extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: const Color(0xFF1F3340).withOpacity(0.28),
             blurRadius: 30,
             offset: const Offset(0, 16),
@@ -470,6 +472,7 @@ class _RelatedBookCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.04),
                     blurRadius: 14,
                     offset: const Offset(0, 8),
@@ -621,7 +624,7 @@ class _RelatedBooksShimmer extends StatelessWidget {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       itemCount: 3,
-      separatorBuilder: (_, __) => const SizedBox(width: 14),
+      separatorBuilder: (_, _) => const SizedBox(width: 14),
       itemBuilder: (context, index) {
         return SizedBox(
           width: 128,
