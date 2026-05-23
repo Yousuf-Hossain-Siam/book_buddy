@@ -4,18 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../home/application/books_notifier.dart';
 import '../../home/domain/book.dart';
 import '../../book description/presentation/book_description_screen.dart';
+import '../../../core/widgets/app_gradient_background.dart';
 import 'bottom_nav_bar.dart';
 import 'widgets/shimmer_loader.dart';
 
-class HomeScreen extends ConsumerStatefulWidget {
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
-  @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  String _searchQuery = '';
 
   static const List<String> _genres = [
     'All',
@@ -32,10 +28,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(booksNotifierProvider);
-    final visibleBooks = _filteredBooks(state.books);
-    final trimmedQuery = _searchQuery.trim();
+    final searchQuery = ref.watch(searchQueryProvider);
+    final visibleBooks = _filteredBooks(state.books, searchQuery);
+    final trimmedQuery = searchQuery.trim();
 
     // Trigger initial load once after first build if needed
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -48,18 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: Colors.white,
       bottomNavigationBar: const BottomNavBar(),
       body: SafeArea(
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFEAF4FF),
-                Color(0xFFF7FBFF),
-                Color(0xFFF2F8FF),
-              ],
-            ),
-          ),
+        child: AppGradientBackground(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
@@ -90,7 +76,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     children: [
                       TextSpan(
                         text: 'Hello Reader ',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       TextSpan(text: '\u{1F44B}'),
                     ],
@@ -108,12 +97,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 TextField(
                   textInputAction: TextInputAction.search,
                   onChanged: (value) {
-                    setState(() => _searchQuery = value);
+                    ref.read(searchQueryProvider.notifier).state = value;
                   },
                   onSubmitted: (value) {
                     final query = value.trim();
-                    setState(() => _searchQuery = query);
-                    ref.read(booksNotifierProvider.notifier).loadInitial(query.isEmpty ? null : query);
+                    ref.read(searchQueryProvider.notifier).state = query;
+                    ref
+                        .read(booksNotifierProvider.notifier)
+                        .loadInitial(query.isEmpty ? null : query);
                   },
                   decoration: InputDecoration(
                     hintText: 'Search by title, author, or genre...',
@@ -136,10 +127,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     const Expanded(
                       child: Center(child: CircularProgressIndicator()),
                     )
+                  else if (state.error != null)
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(state.error ?? 'Failed to load books.'),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () => _refreshBooks(ref),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
                   else if (visibleBooks.isEmpty)
                     Expanded(
                       child: RefreshIndicator(
-                        onRefresh: () => _refreshBooks(state),
+                        onRefresh: () => _refreshBooks(ref),
                         child: ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: const [
@@ -152,7 +159,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   else
                     Expanded(
                       child: RefreshIndicator(
-                        onRefresh: () => _refreshBooks(state),
+                        onRefresh: () => _refreshBooks(ref),
                         child: ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
                           itemCount: visibleBooks.length,
@@ -161,10 +168,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             return _BookCard(
                               book: book,
                               onTap: () {
-                                ref.read(selectedBookProvider.notifier).state = book;
+                                ref.read(selectedBookProvider.notifier).state =
+                                    book;
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => const BookDescriptionScreen(),
+                                    builder: (_) =>
+                                        const BookDescriptionScreen(),
                                   ),
                                 );
                               },
@@ -174,76 +183,115 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                 ] else ...[
-                // Category chips
-                SizedBox(
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      ..._genres.map(
-                        (genre) => _buildChip(
+                  // Category chips
+                  SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _genres.length,
+                      itemBuilder: (context, index) {
+                        final genre = _genres[index];
+                        return _buildChip(
                           genre,
-                          selected: state.selectedGenre == genre ||
-                              (state.selectedGenre == null && genre == _genres.first),
+                          selected:
+                              state.selectedGenre == genre ||
+                              (state.selectedGenre == null &&
+                                  genre == _genres.first),
                           onSelected: () {
                             if (genre == 'All') {
-                              ref.read(booksNotifierProvider.notifier).loadInitial();
+                              ref
+                                  .read(booksNotifierProvider.notifier)
+                                  .loadInitial();
                             } else {
-                              ref.read(booksNotifierProvider.notifier).loadGenre(genre);
+                              ref
+                                  .read(booksNotifierProvider.notifier)
+                                  .loadGenre(genre);
                             }
                           },
-                        ),
-                      ),
-                    ],
+                        );
+                      },
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 18),
+                  const SizedBox(height: 18),
 
-                // Book list with scroll notification for pagination
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () => _refreshBooks(state),
-                    child: state.isLoading
-                        ? ListView.builder(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            itemCount: 5,
-                            itemBuilder: (context, index) => const ShimmerBookCard(),
-                          )
-                        : NotificationListener<ScrollNotification>(
-                            onNotification: (scrollInfo) {
-                              if (scrollInfo.metrics.pixels >=
-                                  scrollInfo.metrics.maxScrollExtent - 200) {
-                                ref.read(booksNotifierProvider.notifier).loadMore();
-                              }
-                              return false;
-                            },
-                            child: ListView.builder(
+                  // Book list with scroll notification for pagination
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () => _refreshBooks(ref),
+                      child: state.isLoading
+                          ? ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: state.books.length + (state.isLoadingMore ? 1 : 0),
-                              itemBuilder: (context, index) {
-                                if (index >= state.books.length) {
-                                  return const ShimmerBookCard();
-                                }
-
-                                final book = state.books[index];
-                                return _BookCard(
-                                  book: book,
-                                  onTap: () {
-                                    ref.read(selectedBookProvider.notifier).state = book;
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const BookDescriptionScreen(),
+                              itemCount: 5,
+                              itemBuilder: (context, index) =>
+                                  const ShimmerBookCard(),
+                            )
+                          : (state.error != null && state.books.isEmpty)
+                              ? ListView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  children: [
+                                    const SizedBox(height: 120),
+                                    Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(state.error ?? 'Failed to load books.'),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: () => ref
+                                                .read(booksNotifierProvider.notifier)
+                                                .loadInitial(),
+                                            child: const Text('Retry'),
+                                          ),
+                                        ],
                                       ),
-                                    );
+                                    ),
+                                  ],
+                                )
+                              : NotificationListener<ScrollNotification>(
+                                  onNotification: (scrollInfo) {
+                                    if (scrollInfo.metrics.pixels >=
+                                        scrollInfo.metrics.maxScrollExtent - 200) {
+                                      ref
+                                          .read(booksNotifierProvider.notifier)
+                                          .loadMore();
+                                    }
+                                    return false;
                                   },
-                                );
-                              },
-                            ),
-                          ),
+                                  child: ListView.builder(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    itemCount:
+                                        state.books.length +
+                                        (state.isLoadingMore ? 1 : 0),
+                                    itemBuilder: (context, index) {
+                                      if (index >= state.books.length) {
+                                        return const ShimmerBookCard();
+                                      }
+
+                                      final book = state.books[index];
+                                      return _BookCard(
+                                        book: book,
+                                        onTap: () {
+                                          ref
+                                                  .read(
+                                                    selectedBookProvider.notifier,
+                                                  )
+                                                  .state =
+                                              book;
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const BookDescriptionScreen(),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
+                  const SizedBox(height: 8),
                 ],
               ],
             ),
@@ -253,19 +301,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  List<Book> _filteredBooks(List<Book> books) {
-    final query = _searchQuery.trim().toLowerCase();
+  List<Book> _filteredBooks(List<Book> books, String searchQuery) {
+    final query = searchQuery.trim().toLowerCase();
     if (query.isEmpty) return books;
 
     return books.where((book) {
       final titleMatch = book.title.toLowerCase().contains(query);
       final authorMatch = book.author.toLowerCase().contains(query);
-      final genreMatch = book.genres.any((genre) => genre.toLowerCase().contains(query));
+      final genreMatch = book.genres.any(
+        (genre) => genre.toLowerCase().contains(query),
+      );
       return titleMatch || authorMatch || genreMatch;
     }).toList();
   }
 
-  Future<void> _refreshBooks(BooksState state) async {
+  Future<void> _refreshBooks(WidgetRef ref) async {
     await ref.read(booksNotifierProvider.notifier).refreshCurrent();
   }
 
@@ -281,9 +331,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         selected: selected,
         backgroundColor: const Color(0xFFF6F6F8),
         selectedColor: Colors.deepPurple,
-        labelStyle: TextStyle(
-          color: selected ? Colors.white : Colors.black87,
-        ),
+        labelStyle: TextStyle(color: selected ? Colors.white : Colors.black87),
         onSelected: (_) => onSelected?.call(),
       ),
     );
@@ -366,7 +414,8 @@ class _BookCard extends StatelessWidget {
                         ? Image.network(
                             book.thumbnail!,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => _bookFallback(),
+                            errorBuilder: (context, error, stackTrace) =>
+                                _bookFallback(),
                           )
                         : _bookFallback(),
                   ),
@@ -378,7 +427,10 @@ class _BookCard extends StatelessWidget {
                     children: [
                       Text(
                         book.title,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -404,7 +456,11 @@ class _BookCard extends StatelessWidget {
     return Container(
       color: const Color(0xFFF4F8FF),
       child: const Center(
-        child: Icon(Icons.menu_book_rounded, color: Color(0xFF6B8FC7), size: 34),
+        child: Icon(
+          Icons.menu_book_rounded,
+          color: Color(0xFF6B8FC7),
+          size: 34,
+        ),
       ),
     );
   }

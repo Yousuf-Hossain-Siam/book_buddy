@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../home/application/books_notifier.dart';
 import '../../home/domain/book.dart';
 import '../../home/presentation/widgets/shimmer_loader.dart';
+import '../../../core/widgets/app_gradient_background.dart';
 
 class BookDescriptionScreen extends ConsumerWidget {
   const BookDescriptionScreen({super.key});
@@ -16,207 +17,256 @@ class BookDescriptionScreen extends ConsumerWidget {
     if (selectedBook == null) {
       return const Scaffold(
         backgroundColor: Color(0xFFF4F5F8),
-        body: SafeArea(child: _BookDescriptionShimmer()),
+        body: SafeArea(
+          child: AppGradientBackground(child: _BookDescriptionShimmer()),
+        ),
       );
     }
 
     final favouriteBooks = ref.watch(favouriteBooksProvider);
-    final isFavourite = favouriteBooks.any((book) => book.id == selectedBook.id);
-    final relatedBooks = booksState.books.where((book) => book.id != selectedBook.id).take(6).toList();
+    final isFavourite = favouriteBooks.any(
+      (book) => book.id == selectedBook.id,
+    );
+    final relatedBooks = booksState.books
+        .where((book) => book.id != selectedBook.id)
+        .take(6)
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F5F8),
       body: SafeArea(
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFEAF4FF),
-                Color(0xFFF7FBFF),
-                Color(0xFFF2F8FF),
-              ],
-            ),
-          ),
+        child: AppGradientBackground(
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _CircleIconButton(
-                      icon: Icons.arrow_back,
-                      onTap: () => Navigator.of(context).pop(),
-                    ),
-                    _FavoriteCircleButton(
-                      isFavourite: isFavourite,
-                      onTap: () => ref.read(favouriteBooksProvider.notifier).toggle(selectedBook),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _CircleIconButton(
+                        icon: Icons.arrow_back,
+                        onTap: () => Navigator.of(context).pop(),
+                      ),
+                      _FavoriteCircleButton(
+                        isFavourite: isFavourite,
+                        onTap: () => ref
+                            .read(favouriteBooksProvider.notifier)
+                            .toggle(selectedBook),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              Center(child: _BookCover(book: selectedBook)),
-              const SizedBox(height: 18),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Text(
-                        selectedBook.title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          height: 1.15,
+                const SizedBox(height: 18),
+                Center(child: _BookCover(book: selectedBook)),
+                const SizedBox(height: 18),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          selectedBook.title,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            height: 1.15,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Center(
-                      child: Text(
-                        'by ${selectedBook.author}',
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          'by ${selectedBook.author}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          _MetricBlock(
+                            label: 'RATING',
+                            value:
+                                selectedBook.averageRating?.toStringAsFixed(
+                                  1,
+                                ) ??
+                                '4.8',
+                            accent: true,
+                          ),
+                          const SizedBox(width: 20),
+                          _MetricBlock(
+                            label: 'YEAR',
+                            value: selectedBook.publishedYear ?? '2023',
+                          ),
+                          const SizedBox(width: 20),
+                          _MetricBlock(
+                            label: 'PAGES',
+                            value: selectedBook.pageCount?.toString() ?? '432',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: selectedBook.genres.isEmpty
+                            ? const [
+                                _GenreChip(
+                                  label: 'Literary Fiction',
+                                  selected: true,
+                                ),
+                                _GenreChip(label: 'Mystery'),
+                                _GenreChip(label: 'Historical'),
+                              ]
+                            : selectedBook.genres.take(4).map((genre) {
+                                final cleanGenre = genre
+                                    .replaceFirst('subject:', '')
+                                    .trim();
+                                return _GenreChip(
+                                  label: cleanGenre,
+                                  selected: genre == selectedBook.genres.first,
+                                );
+                              }).toList(),
+                      ),
+                      const SizedBox(height: 22),
+                      const Text(
+                        'Description',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        selectedBook.description?.trim().isNotEmpty == true
+                            ? selectedBook.description!.trim()
+                            : 'No description is available for this book yet. Select another book from the home screen to explore its details.',
+                        maxLines: 6,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.black54,
-                          fontStyle: FontStyle.italic,
+                          height: 1.55,
+                          color: Color(0xFF4A4A57),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        _MetricBlock(
-                          label: 'RATING',
-                          value: selectedBook.averageRating?.toStringAsFixed(1) ?? '4.8',
-                          accent: true,
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            await ref
+                                .read(cartProvider.notifier)
+                                .add(selectedBook);
+                            if (!context.mounted) {
+                              return;
+                            }
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Added to cart')),
+                            );
+                          },
+                          icon: const Icon(Icons.shopping_bag_outlined),
+                          label: const Text('Add to cart'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4F46E5),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                         ),
-                        const SizedBox(width: 20),
-                        _MetricBlock(
-                          label: 'YEAR',
-                          value: selectedBook.publishedYear ?? '2023',
-                        ),
-                        const SizedBox(width: 20),
-                        _MetricBlock(
-                          label: 'PAGES',
-                          value: selectedBook.pageCount?.toString() ?? '432',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: selectedBook.genres.isEmpty
-                          ? const [
-                              _GenreChip(label: 'Literary Fiction', selected: true),
-                              _GenreChip(label: 'Mystery'),
-                              _GenreChip(label: 'Historical'),
-                            ]
-                          : selectedBook.genres.take(4).map((genre) {
-                              final cleanGenre = genre.replaceFirst('subject:', '').trim();
-                              return _GenreChip(
-                                label: cleanGenre,
-                                selected: genre == selectedBook.genres.first,
-                              );
-                            }).toList(),
-                    ),
-                    const SizedBox(height: 22),
-                    const Text(
-                      'Description',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      selectedBook.description?.trim().isNotEmpty == true
-                          ? selectedBook.description!.trim()
-                          : 'No description is available for this book yet. Select another book from the home screen to explore its details.',
-                      maxLines: 6,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        height: 1.55,
-                        color: Color(0xFF4A4A57),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Similar Books',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        final selectedGenre = selectedBook.genres.isNotEmpty
-                            ? selectedBook.genres.first.replaceFirst('subject:', '').trim()
-                            : null;
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Similar Books',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          final selectedGenre = selectedBook.genres.isNotEmpty
+                              ? selectedBook.genres.first
+                                    .replaceFirst('subject:', '')
+                                    .trim()
+                              : null;
 
-                        if (selectedGenre != null && selectedGenre.isNotEmpty) {
-                          ref.read(booksNotifierProvider.notifier).loadGenre(selectedGenre);
-                        }
+                          if (selectedGenre != null &&
+                              selectedGenre.isNotEmpty) {
+                            ref
+                                .read(booksNotifierProvider.notifier)
+                                .loadGenre(selectedGenre);
+                          }
 
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('View All'),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 220,
-                child: booksState.isLoading || relatedBooks.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: _RelatedBooksShimmer(),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        scrollDirection: Axis.horizontal,
-                        itemCount: relatedBooks.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 14),
-                        itemBuilder: (context, index) {
-                          final relatedBook = relatedBooks[index];
-                          return _RelatedBookCard(
-                            book: relatedBook,
-                            onTap: () {
-                              ref.read(selectedBookProvider.notifier).state = relatedBook;
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const BookDescriptionScreen(),
-                                ),
-                              );
-                            },
-                          );
+                          Navigator.of(context).pop();
                         },
+                        child: const Text('View All'),
                       ),
-              ),
-              const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 220,
+                  child: booksState.isLoading || relatedBooks.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: _RelatedBooksShimmer(),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: relatedBooks.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: 14),
+                          itemBuilder: (context, index) {
+                            final relatedBook = relatedBooks[index];
+                            return _RelatedBookCard(
+                              book: relatedBook,
+                              onTap: () {
+                                ref.read(selectedBookProvider.notifier).state =
+                                    relatedBook;
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const BookDescriptionScreen(),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -265,7 +315,11 @@ class _BookCover extends StatelessWidget {
     return Container(
       color: const Color(0xFF233847),
       child: const Center(
-        child: Icon(Icons.auto_stories_rounded, color: Colors.white70, size: 54),
+        child: Icon(
+          Icons.auto_stories_rounded,
+          color: Colors.white70,
+          size: 54,
+        ),
       ),
     );
   }
@@ -276,7 +330,11 @@ class _MetricBlock extends StatelessWidget {
   final String value;
   final bool accent;
 
-  const _MetricBlock({required this.label, required this.value, this.accent = false});
+  const _MetricBlock({
+    required this.label,
+    required this.value,
+    this.accent = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -378,7 +436,9 @@ class _FavoriteCircleButton extends StatelessWidget {
           child: Icon(
             isFavourite ? Icons.favorite : Icons.favorite_border,
             size: 20,
-            color: isFavourite ? const Color(0xFF4F46E5) : const Color(0xFF1F2430),
+            color: isFavourite
+                ? const Color(0xFF4F46E5)
+                : const Color(0xFF1F2430),
           ),
         ),
       ),
@@ -420,7 +480,9 @@ class _RelatedBookCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 child: book.thumbnail != null
                     ? Image.network(book.thumbnail!, fit: BoxFit.cover)
-                    : const Center(child: Icon(Icons.book_outlined, color: Colors.grey)),
+                    : const Center(
+                        child: Icon(Icons.book_outlined, color: Colors.grey),
+                      ),
               ),
             ),
             const SizedBox(height: 8),
@@ -456,10 +518,7 @@ class _BookDescriptionShimmer extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                _CircleShimmer(),
-                _CircleShimmer(),
-              ],
+              children: const [_CircleShimmer(), _CircleShimmer()],
             ),
           ),
           const SizedBox(height: 18),

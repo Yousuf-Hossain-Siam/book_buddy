@@ -5,6 +5,7 @@ import '../../home/application/books_notifier.dart';
 import '../../home/domain/book.dart';
 import '../../home/presentation/bottom_nav_bar.dart';
 import '../../book description/presentation/book_description_screen.dart';
+import '../../../core/widgets/app_gradient_background.dart';
 
 class FavouriteBooksScreen extends ConsumerWidget {
   const FavouriteBooksScreen({super.key});
@@ -17,49 +18,56 @@ class FavouriteBooksScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFFF7F8FC),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFFEAF4FF),
-                Color(0xFFF7FBFF),
-                Color(0xFFF2F8FF),
-              ],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Your Favorites',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+        child: AppGradientBackground(
+          child: RefreshIndicator(
+            onRefresh: () => ref.read(favouriteBooksProvider.notifier).reload(),
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                const SliverPadding(
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Your Favorites',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'The books that captured your imagination.',
+                          style: TextStyle(fontSize: 15, color: Colors.black54),
+                        ),
+                        SizedBox(height: 18),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'The books that captured your imagination.',
-                  style: TextStyle(fontSize: 15, color: Colors.black54),
-                ),
-                const SizedBox(height: 18),
-                Expanded(
-                  child: favouriteBooks.isEmpty
-                      ? const _EmptyFavoritesState()
-                      : GridView.builder(
-                          itemCount: favouriteBooks.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                if (favouriteBooks.isEmpty)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _EmptyFavoritesState(),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             childAspectRatio: 0.62,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                           ),
-                          itemBuilder: (context, index) {
-                            return _FavouriteBookCard(book: favouriteBooks[index]);
-                          },
-                        ),
-                ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return _FavouriteBookCard(book: favouriteBooks[index]);
+                      }, childCount: favouriteBooks.length),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -76,7 +84,9 @@ class _FavouriteBookCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFavourite = ref.watch(favouriteBooksProvider).any((item) => item.id == book.id);
+    final isFavourite = ref
+        .watch(favouriteBooksProvider)
+        .any((item) => item.id == book.id);
 
     return Material(
       color: Colors.white,
@@ -88,9 +98,7 @@ class _FavouriteBookCard extends ConsumerWidget {
         onTap: () {
           ref.read(selectedBookProvider.notifier).state = book;
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const BookDescriptionScreen(),
-            ),
+            MaterialPageRoute(builder: (_) => const BookDescriptionScreen()),
           );
         },
         child: Padding(
@@ -108,7 +116,11 @@ class _FavouriteBookCard extends ConsumerWidget {
                             ? Image.network(book.thumbnail!, fit: BoxFit.cover)
                             : Container(
                                 color: const Color(0xFFE9EDF5),
-                                child: const Icon(Icons.menu_book_rounded, color: Colors.black26, size: 40),
+                                child: const Icon(
+                                  Icons.menu_book_rounded,
+                                  color: Colors.black26,
+                                  size: 40,
+                                ),
                               ),
                       ),
                     ),
@@ -117,7 +129,9 @@ class _FavouriteBookCard extends ConsumerWidget {
                       right: 8,
                       child: _FavouritePill(
                         isFavourite: isFavourite,
-                        onTap: () => ref.read(favouriteBooksProvider.notifier).toggle(book),
+                        onTap: () => ref
+                            .read(favouriteBooksProvider.notifier)
+                            .toggle(book),
                       ),
                     ),
                   ],
@@ -128,7 +142,10 @@ class _FavouriteBookCard extends ConsumerWidget {
                 book.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -178,10 +195,10 @@ class _EmptyFavoritesState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Icon(Icons.favorite_border, size: 56, color: Colors.black26),
           SizedBox(height: 12),
           Text(

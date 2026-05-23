@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="book_buddy_"
+        android:label="Book Buddy"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

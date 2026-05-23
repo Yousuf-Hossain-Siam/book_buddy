@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../../../config.dart';
 import '../domain/book.dart';
 
 class GoogleBooksApi {
@@ -21,7 +22,7 @@ class GoogleBooksApi {
       'key': apiKey,
     };
 
-    final uri = Uri.https('www.googleapis.com', '/books/v1/volumes', params);
+    final uri = Uri.parse('$baseUrl/books/v1/volumes').replace(queryParameters: params);
     final resp = await _client.get(uri);
     if (resp.statusCode != 200) {
       throw Exception('Books API error: ${resp.statusCode}');
