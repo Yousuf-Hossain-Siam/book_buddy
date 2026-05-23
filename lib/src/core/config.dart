@@ -7,5 +7,5 @@ class Config {
 }
 
 final configProvider = Provider<Config>((ref) {
-  throw StateError('Config provider was not overridden. Provide a flavor-specific Config in the entrypoint.');
+  throw StateError('Config provider was not overridden. Provide an environment-specific Config in the entrypoint or via dart-define.');
 });
