@@ -6,7 +6,7 @@ import 'src/core/config.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Flavor: prod
+  // Environment: prod
   runApp(ProviderScope(overrides: [
     configProvider.overrideWithValue(const Config(baseUrl: 'https://api.bookbuddy.example'))
   ], child: const BookBuddyApp()));

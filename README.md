@@ -28,42 +28,42 @@ flutter pub get
 3. Run on an emulator or device (example, development flavor):
 
 ```bash
-flutter run --flavor dev -t lib/main_dev.dart
+flutter run
 ```
 
-4. Build release artifacts (example, production flavor):
+4. Build release artifacts:
 
 ```bash
-flutter build apk --flavor prod -t lib/main_prod.dart
-flutter build ios --flavor prod -t lib/main_prod.dart
+flutter build apk
+flutter build ios
 ```
 
-If your project uses additional platform configuration for flavors, make sure to open the platform projects and verify the flavor targets in Android Studio / Xcode.
+If your project uses additional platform configuration for URL selection, keep that in Dart rather than in Android product flavors.
 
-## Flavor setup (how this project is organized)
+## URL configuration (how this project is organized)
 
-This repository uses a flavor-based approach to produce different app variants and the project includes a minimal implementation for `dev`, `staging`, and `prod`.
+This repository uses a single Android build that produces one APK. URL differences are handled in Dart instead of Android product flavors.
 
-- Separate Dart entrypoints per flavor are included: `lib/main_dev.dart`, `lib/main_prod.dart` (the default `lib/main.dart` remains for a single-entrypoint run). Each entrypoint should initialize environment-specific configuration and then call the common `runApp()`.
-- Use Flutter's `--flavor` flag for platform-specific configuration and the `-t` flag to point to the flavor entrypoint:
+- The default Android entrypoint is `lib/main.dart` and it produces the single APK.
+- If you need environment-specific API URLs, keep them in Dart entrypoints or `--dart-define` values rather than in Android build flavors.
 
 ```bash
-flutter run --flavor dev -t lib/main_dev.dart
+flutter run -t lib/main_dev.dart
 ```
 
 - Pass environment-specific values with `--dart-define` when needed:
 
 ```bash
-flutter run --flavor dev -t lib/main_dev.dart --dart-define=ENV=dev
+flutter run -t lib/main_dev.dart --dart-define=ENV=dev
 ```
 
 - Platform specifics (Android/iOS):
-	- Android flavor definitions are implemented in `android/app/build.gradle.kts` (see the `productFlavors` block). The flavors add `applicationIdSuffix` and `versionNameSuffix` for non-prod builds.
+	- Android is no longer split into product flavors, so `flutter build apk` now yields one APK.
 	- iOS flavor schemes/targets are not changed by this commit; if you need iOS scheme/target setup I can add Xcode guidance and a suggested changes list.
 
-This setup keeps flavor differences explicit (entrypoints and platform config) while sharing most application code.
+This setup keeps URL differences explicit in Dart while sharing one Android application package.
 
-Implemented base URLs per flavor (example):
+Implemented base URLs per environment example:
 
 - `dev` (entrypoint `lib/main_dev.dart`) uses `https://api.dev.bookbuddy.example`
 - `prod` (entrypoint `lib/main_prod.dart`) uses `https://api.bookbuddy.example`
@@ -106,7 +106,7 @@ final booksNotifierProvider = StateNotifierProvider<BooksNotifier, BooksState>((
 
 ## Notes & next steps
 
-- Flavor entrypoints `lib/main_dev.dart` and `lib/main_prod.dart` have been added. If you want, I can add a `lib/main_staging.dart` entrypoint, wire production/dev-specific configs into the app (for example a `Config` provider), and add iOS scheme guidance.
+- URL entrypoints `lib/main_dev.dart` and `lib/main_prod.dart` have been added. If you want, I can add a `lib/main_staging.dart` entrypoint or switch the URL selection to `--dart-define` so the same entrypoint can target different environments.
 
 ---
 
